@@ -8,7 +8,7 @@ namespace ADSBSharp
     public unsafe class RtlSdrIO : IDisposable
     {       
         private RtlDevice _rtlDevice;
-        private uint _frequency = 431993500;
+        private uint _frequency = 1090000000;
         private SamplesReadyDelegate _callback;
 
         ~RtlSdrIO()

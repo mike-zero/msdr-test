@@ -92,7 +92,7 @@
             this.tunerGainTrackBar.Location = new System.Drawing.Point(6, 119);
             this.tunerGainTrackBar.Maximum = 10000;
             this.tunerGainTrackBar.Name = "tunerGainTrackBar";
-            this.tunerGainTrackBar.Size = new System.Drawing.Size(258, 42);
+            this.tunerGainTrackBar.Size = new System.Drawing.Size(258, 45);
             this.tunerGainTrackBar.TabIndex = 3;
             this.tunerGainTrackBar.Scroll += new System.EventHandler(this.tunerGainTrackBar_Scroll);
             // 
@@ -145,6 +145,11 @@
             this.frequencyCorrectionNumericUpDown.Size = new System.Drawing.Size(83, 20);
             this.frequencyCorrectionNumericUpDown.TabIndex = 4;
             this.frequencyCorrectionNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.frequencyCorrectionNumericUpDown.Value = new decimal(new int[] {
+            61,
+            0,
+            0,
+            -2147483648});
             this.frequencyCorrectionNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyCorrectionNumericUpDown_ValueChanged);
             // 
             // label4
@@ -283,7 +288,7 @@
             this.confidenceNumericUpDown.TabIndex = 0;
             this.confidenceNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.confidenceNumericUpDown.Value = new decimal(new int[] {
-            4,
+            3,
             0,
             0,
             0});
@@ -404,7 +409,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1026, 357);
+            this.ClientSize = new System.Drawing.Size(922, 357);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.totalCounter);
             this.Controls.Add(this.hostnameTb);

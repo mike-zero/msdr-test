@@ -13,7 +13,7 @@ namespace ADSBSharp
 
     public unsafe sealed class RtlDevice : IDisposable
     {
-        private const uint DefaultFrequency = 431993500;
+        private const uint DefaultFrequency = 1090000000;
         private const int DefaultSamplerate = 2000000;
 
         private readonly uint _index;
@@ -25,7 +25,7 @@ namespace ADSBSharp
         private int _tunerGain;
         private uint _centerFrequency = DefaultFrequency;
         private uint _sampleRate = DefaultSamplerate;
-        private int _frequencyCorrection;
+        private int _frequencyCorrection = -61;
         private SamplingMode _samplingMode;
         private bool _useOffsetTuning;
         private readonly bool _supportsOffsetTuning;

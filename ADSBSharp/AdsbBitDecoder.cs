@@ -13,7 +13,7 @@ namespace ADSBSharp
         private const int LongFrameLengthBits = 112;
         private const int ShortFrameLengthBits = 56;
         private const int PreambleLengthBits = 16;
-        private const int DefaultConfidence = 4;
+        private const int DefaultConfidence = 3;
         private const uint Polynomial = 0xfffa0480;
         private const int OneSecond = 2000000;
 

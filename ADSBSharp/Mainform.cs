@@ -97,7 +97,7 @@ namespace ADSBSharp
                 try
                 {
                     _rtlDevice.SelectDevice(deviceDisplay.Index);
-                    _rtlDevice.Frequency = 431993500;
+                    _rtlDevice.Frequency = 1090000000;
                     _rtlDevice.Device.Samplerate = 2000000;
                     _initialized = true;
                 }
@@ -256,7 +256,8 @@ namespace ADSBSharp
                     stateText = stateText + buf[i].Real.ToString() + " " + buf[i].Imag.ToString() + Environment.NewLine;
                 }
 
-                _decoder.ProcessSample(buf[i].Real);
+                // _decoder.ProcessSample(buf[i].Real);
+                _decoder.ProcessSample(mag);
             }
         }
 
@@ -269,7 +270,8 @@ namespace ADSBSharp
 
             _avgFps = 0.9f * _avgFps + 0.1f * fps;
 
-            fpsLabel.Text = ((int) _avgFps).ToString();
+            //fpsLabel.Text = ((int)_avgFps).ToString();
+            fpsLabel.Text = _avgFps.ToString();
             // totalCounter.Text = stateText;
             //if (stateText.Length < 100)
             //{
