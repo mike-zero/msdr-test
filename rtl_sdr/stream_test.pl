@@ -4,7 +4,7 @@ use strict;
 
 my $filename = shift || '-';
 
-my $bufsize = 2 * 10240;
+my $bufsize = 2 * 1024000;
 my $buf = 0 x $bufsize;
 
 my %hh = ();
@@ -27,7 +27,7 @@ while (sysread(F, $buf, $bufsize)) {
 	for my $i (0..(length($buf)/2-1)) {
 		$hh{substr($buf, $i*2, 2)}++;
 	}
-	correct_avg(\substr($buf, $i*2, 2));
+	correct_avg(\$buf);
 	print "Avg: $avg_i, $avg_q\n";
 }
 close F;
