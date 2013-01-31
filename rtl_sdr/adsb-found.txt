@@ -151,7 +151,7 @@ https://trainingzone.eurocontrol.int/ATMTraining/PreCourse/SUR/ADS/Taste%20the%2
            4
           45     1
            2
-          50     1 -- End of ICAO 01000010 01001001 11011111 (0x4245DF)
+          50     1 -- End of ICAO 0100 0010  0100 1001  1101 1111 (0x4249DF)
           17
           34     1 -- Start of ME (56 bits)
            5
