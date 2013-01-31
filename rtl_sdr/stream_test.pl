@@ -20,5 +20,5 @@ while (sysread(F, $buf, $bufsize)) {
 close F;
 foreach (sort { $hh{$b} <=> $hh{$a} } keys %hh) {
 	# printf("%X %X\t%d\n", unpack('C*', $_), $hh{$_});
-	printf("%d %d\t%d\n", unpack('c*', $_), $hh{$_});
+	printf("%d %d\t%d\n", ( map { $_ - 0x80 } unpack('C*', $_) ), $hh{$_});
 }
