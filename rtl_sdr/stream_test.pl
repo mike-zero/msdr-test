@@ -4,34 +4,44 @@ use strict;
 
 my $filename = shift || '-';
 
-my $bufsize = 2 * 1024000;
+my $bufsize = 2 * 102400;
 my $buf = 0 x $bufsize;
 
 my %hh = ();
-my ($avg_i, $avg_q) = (0, 0);
+my ($avg_i, $avg_q) = (0x80, 0x80);
+my ($i, $q);
 
-sub correct_avg($) {
-	my $buf = shift;
-	my ($cur_i_sum, $cur_q_sum, $cnt) = (0, 0, 0);
-	for my $i (0..(length($$buf)/2-1)) {
-		$cur_i_sum += unpack('C*', substr($$buf, $i*2, 1));
-		$cur_q_sum += unpack('C*', substr($$buf, $i*2+1, 1));
-		$cnt++;
+sub correct_avg() {
+	# my $buf = shift;
+	my ($cur_i_sum, $cur_q_sum) = (0, 0);
+	foreach (0..(length($buf)/2-1)) {
+		$i = ord(substr($buf, $_*2, 1));
+		$q = ord(substr($buf, $_*2+1, 1));
+		$cur_i_sum += $i;
+		$cur_q_sum += $q;
+		printf("%12d\n", ($i-$avg_i)**2 + ($q-$avg_q)**2);
 	}
-	($avg_i, $avg_q) = ($cur_i_sum/$cnt, $cur_q_sum/$cnt) if $cnt > 0;
+	if (length($buf) > 0) {
+		$avg_i = $cur_i_sum*2/length($buf); # ($avg_i * 7 + $cur_i_sum*2/length($buf)) >> 3;
+		$avg_q = $cur_q_sum*2/length($buf); # ($avg_q * 7 + $cur_q_sum*2/length($buf)) >> 3;
+	}
 }
 
 open F, $filename;
 binmode(F);
 while (sysread(F, $buf, $bufsize)) {
-	for my $i (0..(length($buf)/2-1)) {
-		$hh{substr($buf, $i*2, 2)}++;
-	}
-	correct_avg(\$buf);
+	correct_avg();
+#	for my $i (0..(length($buf)/2-1)) {
+#		$hh{substr($buf, $i*2, 2)}++;
+#	}
 	print "Avg: $avg_i, $avg_q\n";
+	last;
 }
 close F;
-foreach (sort { $hh{$b} <=> $hh{$a} } keys %hh) {
-	# printf("%X %X\t%d\n", unpack('C*', $_), $hh{$_});
-	printf("%d %d\t%d\n", ( map { $_ - 0x80 } unpack('C*', $_) ), $hh{$_});
-}
+
+#foreach (sort { $hh{$b} <=> $hh{$a} } keys %hh) {
+#	# printf("%X %X\t%d\n", unpack('C*', $_), $hh{$_});
+#	($i, $q) = (ord(substr($_, 0, 1)) - $avg_i, ord(substr($_, 1, 1)) - $avg_q);
+#	printf("I:%6.2f Q:%6.2f R:%10.2f Cnt:%12d\n", $i, $q, $i*$i+$q*$q, $hh{$_});
+#	# printf("%d %d\t%d\n", ( map { $_ - 0x80 } unpack('C*', $_) ), $hh{$_});
+#}
