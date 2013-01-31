@@ -8,14 +8,27 @@ my $bufsize = 2 * 10240;
 my $buf = 0 x $bufsize;
 
 my %hh = ();
+my ($avg_i, $avg_q) = (0, 0);
+
+sub correct_avg($) {
+	my $buf = shift;
+	my ($cur_i_sum, $cur_q_sum, $cnt) = (0, 0, 0);
+	for my $i (0..(length($$buf)/2-1)) {
+		$cur_i_sum += unpack('C*', substr($$buf, $i*2, 1));
+		$cur_q_sum += unpack('C*', substr($$buf, $i*2+1, 1));
+		$cnt++;
+	}
+	($avg_i, $avg_q) = ($cur_i_sum/$cnt, $cur_q_sum/$cnt) if $cnt > 0;
+}
 
 open F, $filename;
 binmode(F);
 while (sysread(F, $buf, $bufsize)) {
-	# syswrite(F, $buf, length($buf));
 	for my $i (0..(length($buf)/2-1)) {
 		$hh{substr($buf, $i*2, 2)}++;
 	}
+	correct_avg(\substr($buf, $i*2, 2));
+	print "Avg: $avg_i, $avg_q\n";
 }
 close F;
 foreach (sort { $hh{$b} <=> $hh{$a} } keys %hh) {
