@@ -2,7 +2,7 @@
 
 use strict;
 
-my $filename = shift or 'aaa.bin';
+my $filename = shift || 'aaa.bin';
 
 my $bufsize = 10240;
 my $buf = 0 x $bufsize;
