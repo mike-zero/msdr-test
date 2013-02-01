@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
+use integer;
 
 my $filename = shift || '-';
 
@@ -8,7 +9,7 @@ my $bufsize = 2 * 102400;
 my $buf = 0 x $bufsize;
 
 my %hh = ();
-my ($avg_i, $avg_q) = (0x80, 0x80);
+my ($avg_i, $avg_q, $avg_i_24, $avg_q_24) = (0x8000, 0x8000, 0x800000, 0x800000);
 my ($i, $q);
 
 sub correct_avg() {
@@ -27,15 +28,36 @@ sub correct_avg() {
 	}
 }
 
+warn "Start: ".(scalar localtime(time));
+
 open F, $filename;
 binmode(F);
 while (sysread(F, $buf, $bufsize)) {
-	correct_avg();
-#	for my $i (0..(length($buf)/2-1)) {
-#		$hh{substr($buf, $i*2, 2)}++;
-#	}
-	print "Avg: $avg_i, $avg_q\n";
-	last;
+	my ($cur_i_sum, $cur_q_sum) = (0, 0);
+	my $j = 0;
+	# correct_avg();
+
+	foreach my $s (0..(length($buf)/2-1)) {
+		$i = ord(substr($buf, $s*2, 1));
+		$q = ord(substr($buf, $s*2 + 1, 1));
+		$cur_i_sum += $i;
+		$cur_q_sum += $q;
+		if (++$j == 256) {
+			$avg_i_24 = $avg_i_24 - ($avg_i_24 >> 8) + $cur_i_sum;
+			$avg_q_24 = $avg_q_24 - ($avg_q_24 >> 8) + $cur_q_sum;
+			$avg_i = $avg_i_24 >> 8;
+			$avg_q = $avg_q_24 >> 8;
+			$j = 0;
+			$cur_i_sum = 0;
+			$cur_q_sum = 0;
+		}
+		$i = ($i << 8) - $avg_i;
+		$q = ($q << 8) - $avg_q;
+		print "$i\t$q\n";
+#		$hh{substr($buf, $s*2, 2)}++;
+	}
+	# print "Avg: $avg_i, $avg_q\n";
+	# last;
 }
 close F;
 
@@ -45,3 +67,5 @@ close F;
 #	printf("I:%6.2f Q:%6.2f R:%10.2f Cnt:%12d\n", $i, $q, $i*$i+$q*$q, $hh{$_});
 #	# printf("%d %d\t%d\n", ( map { $_ - 0x80 } unpack('C*', $_) ), $hh{$_});
 #}
+
+warn "Stop: ".(scalar localtime(time));
