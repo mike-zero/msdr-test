@@ -37,7 +37,7 @@ sub compress($) {
 	my $x = shift;
 	$x *= $compress_coeff;
 	if ($x >= $compress_lim) {
-		$x = $compress_lim + ($x-$compress_lim)/ ($compress_max*$coeff-$compress_lim) * ($compress_max-$compress_lim);
+		$x = $compress_lim + ($x - $compress_lim) / ($compress_max * $compress_coeff - $compress_lim) * ($compress_max - $compress_lim);
 	}
 	return $x;	
 }
