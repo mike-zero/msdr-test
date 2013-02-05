@@ -13,6 +13,35 @@ my %hh = ();
 my ($i, $q);
 my $max_val = 0;
 
+sub hsv2rgb($$$) {
+	my ($h, $s, $v) = @_;
+	$s /= 256;
+	return ($v, $v, $v) if $s == 0;
+	$h /= (256 / 6);
+	my $i = int($h);
+	my $f = $h - $i;
+	my $p = int($v * (1 - $s));
+	my $q = int($v * (1 - $s * $f));
+	my $t = int($v * (1 - $s * (1 - $f)));
+	return  $i == 0 ? ($v,$t,$p) :
+		$i == 1 ? ($q,$v,$p) :
+		$i == 2 ? ($p,$v,$t) :
+		$i == 3 ? ($p,$q,$v) : 
+		$i == 4 ? ($t,$p,$v) : ($v,$p,$q);
+}
+
+my $compress_coeff = 1.4;
+my $compress_lim = 192;
+my $compress_max = 255;
+sub compress($) {
+	my $x = shift;
+	$x *= $compress_coeff;
+	if ($x >= $compress_lim) {
+		$x = $compress_lim + ($x-$compress_lim)/ ($compress_max*$coeff-$compress_lim) * ($compress_max-$compress_lim);
+	}
+	return $x;	
+}
+
 warn "Start: ".(scalar localtime(time));
 
 open F, $filename;
@@ -42,6 +71,8 @@ while (sysread(F, $buf, $bufsize)) {
 }
 close F;
 
+no integer;
+
 my $pixel_size = 2;
 my ($size_x, $size_y) = (256 * $pixel_size, 256 * $pixel_size);
 my $im = new GD::Image($size_x, $size_y, 1);
@@ -49,7 +80,7 @@ my $temp_color;
 
 foreach my $i (sort { $hh{$b} <=> $hh{$a} } keys %hh) {
 	foreach my $q (sort { $hh{$i}{$b} <=> $hh{$i}{$a} } keys %{$hh{$i}}) {
-		$temp_color = $im->colorAllocate(rand(255),rand(255),rand(255));
+		$temp_color = $im->colorAllocate(hsv2rgb($hh{$i}{$q} / $max_val, 256, 255));
 		$im->rectangle($i * $pixel_size, $q * $pixel_size, ($i+1) * $pixel_size - 1, ($q+1) * $pixel_size - 1, $temp_color);
 	}
 }
