@@ -5,7 +5,7 @@ use integer;
 
 my $filename = shift || '-';
 
-my $bufsize = 2 * 102400;
+my $bufsize = 2 * 16384;
 my $buf = 0 x $bufsize;
 
 my %hh = ();
@@ -53,7 +53,7 @@ while (sysread(F, $buf, $bufsize)) {
 		}
 		$i = ($i << 8) - $avg_i;
 		$q = ($q << 8) - $avg_q;
-		print "$i\t$q\n";
+		print "$i\t$q\t".(($i*$i+$q*$q) >> 16)."\n";
 #		$hh{substr($buf, $s*2, 2)}++;
 	}
 	# print "Avg: $avg_i, $avg_q\n";
@@ -68,4 +68,4 @@ close F;
 #	# printf("%d %d\t%d\n", ( map { $_ - 0x80 } unpack('C*', $_) ), $hh{$_});
 #}
 
-warn "Stop: ".(scalar localtime(time));
+warn "Stop:  ".(scalar localtime(time));
