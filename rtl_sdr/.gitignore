@@ -1,0 +1,5 @@
+*.bin
+*.png
+*.txt
+nytprof.out
+nytprof*/
