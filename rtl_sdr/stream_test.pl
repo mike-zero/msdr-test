@@ -53,7 +53,10 @@ while (sysread(F, $buf, $bufsize)) {
 		}
 		$i = ($i << 8) - $avg_i;
 		$q = ($q << 8) - $avg_q;
-		print "$i\t$q\t".(($i*$i+$q*$q) >> 16)."\n";
+# my $amp = ($i*$i+$q*$q) >> 16;
+my $amp = int(sqrt($i*$i+$q*$q)) >> 8;
+#		print "$i\t$q\t".(($i*$i+$q*$q) >> 16)."\n";
+		print "$i\t$q\t$amp\t".('*' x ($amp <= 200 ? $amp : 200))."\n";
 #		$hh{substr($buf, $s*2, 2)}++;
 	}
 	# print "Avg: $avg_i, $avg_q\n";
