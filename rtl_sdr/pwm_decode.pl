@@ -12,15 +12,29 @@ my $ast_lim = 80;
 
 my @amp_cache;
 
+sub SCALE_BITS() { 8 }
+sub AVG_FACTOR_BITS { 3 }
+
+# states
+sub STATE_FLAT() { 1 }
+sub STATE_RISE() { 2 }
+sub STATE_FALL() { 3 }
+
 my ($i, $q);
-my ($amp, $dev, $old_dev, $old_amp) = (0, 0, 0, 0);
-my ($avg_sum, $avg_dev, $avg_factor) = (0, 0x3FF, 8);
-my $state = 'flat';	# flat, up, down (high, low?)
+my ($amp, $delta, $abs_delta, $prev_delta, $prev_amp, $prev_abs_delta) = (0, 0, 0, 0, 0, 0);
+my ($avg_sum, $avg_delta) = (0, 1 << (SCALE_BITS+2));
+my ($state, $prev_state) = (STATE_FLAT, STATE_FLAT);	# flat, up, down (high, low, rise, fall?)
 
 sub calc_amp($$) {
 	my ($i,$q) = @_;
-	$amp_cache[$i][$q] = int(sqrt(($i*$i+$q*$q)<<16));
+	$amp_cache[$i][$q] = int(sqrt(($i*$i+$q*$q) << (SCALE_BITS * 2)));
 	return $amp_cache[$i][$q];
+}
+
+sub set_state($) {
+	$prev_state = $state;
+	$state = shift || return;
+	print "STATE $prev_state -> $state\n";
 }
 
 warn "Start: ".(scalar localtime(time));
@@ -31,32 +45,39 @@ while (sysread(F, $buf, $bufsize)) {
 	foreach my $s (0..(length($buf)/2-1)) {
 		$i = ord(substr($buf, $s*2, 1));
 		$q = ord(substr($buf, $s*2 + 1, 1));
-#print "$i\t$q\t";
+		# print "$i\t$q\t";
 		$i = $i & 0x80 ? $i & 0x7F : $i ^ 0x7F;
 		$q = $q & 0x80 ? $q & 0x7F : $q ^ 0x7F;
-
 		$amp = $amp_cache[$i][$q];
 		$amp = calc_amp($i, $q) unless defined $amp;
 
-		# $dev = $amp - $avg_sum/$avg_factor;
-		$dev = $amp - $old_amp;
+		# $delta = $amp - $avg_sum/$avg_factor;
 
-		# if (abs($dev) > 2 * $avg_dev/$avg_factor) {
-		if ($dev * $old_dev >= 0 and abs($dev) < abs($old_dev)) {
-			print "!!!!\n";
-			$avg_sum = $amp * $avg_factor;
-			# $avg_dev = 2 * $avg_dev; # = abs($dev) * $avg_factor;
-			$avg_dev = 0;
-		} else {
-			$avg_sum = $avg_sum * ($avg_factor - 1) / $avg_factor + $amp;
-			$avg_dev = $avg_dev * ($avg_factor - 1) / $avg_factor + abs($dev);
+		if ($state == STATE_FLAT) {
+			$delta = $amp - ($avg_sum >> AVG_FACTOR_BITS); # $prev_amp;
+			$abs_delta = abs($delta);
+			if ($abs_delta >> (SCALE_BITS+1) and $abs_delta > $prev_abs_delta and $abs_delta > $avg_delta >> (AVG_FACTOR_BITS-1)) {
+				set_state($delta > 0 ? STATE_RISE : STATE_FALL);
+			} else {
+				$avg_sum += $delta; # $amp - ($avg_sum >> AVG_FACTOR_BITS);
+				$avg_delta += $abs_delta - ($avg_delta >> AVG_FACTOR_BITS);
+			}
+		} elsif ($state == STATE_RISE or $state == STATE_FALL) {
+			$delta = $amp - $prev_amp;
+			$abs_delta = abs($delta);
+			if ($abs_delta < $prev_abs_delta>>1 or $delta>0 and $prev_delta<0 or $delta<0 and $prev_delta>0) {
+				set_state(STATE_FLAT);
+				$avg_sum = $amp << AVG_FACTOR_BITS;
+				$avg_delta = $abs_delta << AVG_FACTOR_BITS;
+			}
 		}
 
-		my $amp_ast = $amp>>8 <= $ast_lim ? $amp>>8 : $ast_lim;
-		my $avg_ast = ($avg_sum/$avg_factor)>>8 <= $ast_lim ? ($avg_sum/$avg_factor)>>8 : $ast_lim;
-		printf "%3d %3d amp=%6u d=%5d d_avg=%6u %-${ast_lim}s avg=%5u %-${ast_lim}s\n", $i, $q, $amp, $dev, $avg_dev/$avg_factor, '*' x $amp_ast, $avg_sum/$avg_factor, '*' x $avg_ast;
-		$old_amp = $amp;
-		$old_dev = $dev;
+
+		my $amp_ast = $amp>>SCALE_BITS <= $ast_lim ? $amp>>SCALE_BITS : $ast_lim;
+		printf "%3d %3d amp=%6u avg=%6u d=%5d avgd=%5d %-${ast_lim}s\n", $i, $q, $amp, $avg_sum >> AVG_FACTOR_BITS, $delta, $avg_delta >> AVG_FACTOR_BITS, '*' x $amp_ast;
+		$prev_amp = $amp;
+		$prev_delta = $delta;
+		$prev_abs_delta = $abs_delta;
 	}
 }
 close F;
