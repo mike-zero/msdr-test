@@ -36,7 +36,8 @@ my ($y, $y_prev) = (0, 0);
 
 foreach my $i (0..$#buf) {
 	$x += $buf[$i][1];
-	$y = $buf[$i][0] ? $size_y * 0.2 : $size_y * 0.8;
+	# $y = $buf[$i][0] ? $size_y * 0.2 : $size_y * 0.8;
+	$y = $size_y - int($buf[$i][2] / $max_level * $size_y * 0.6 + $size_y * 0.2);
 #warn "$x, $y\n";
 	if ($i > 0) {
 		$im->line($x_prev, $y_prev, $x_prev, $y, $white);
